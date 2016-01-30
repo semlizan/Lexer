@@ -4,8 +4,6 @@
 #include <string>
 #include <string.h>
 #include <fstream>
-#include <cctype>
-#include <map>
 
 using namespace std;
 
@@ -19,6 +17,27 @@ int columnError = 0;
 char ops_second_char[] = {'/','+','*',' :','-','>', '^', '<', '@', '.', '='};
 char sep[] = {';' ,',','(','[',')',']',};
 char ops[] = {'>','<','/','+','*',':','-','^','=','@',';',',','(','[',')',']','.'};
+
+class Token
+{
+protected:
+    int l;
+    int c;
+    string tok;
+    string leks;
+public:
+    Token (int L, int C, string TOK, string LEKS)
+    {
+        l = L;
+        c = C;
+        tok = TOK;
+        leks = LEKS;
+    }
+    virtual void print(){
+        fout << l << "\t" << c << "\t" << tok << "\t" << leks << endl;
+    }
+    ~Token(){}
+};
 
 void next_char()
 {

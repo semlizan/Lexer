@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 ifstream fin("input.txt");
 ofstream fout("output.txt");
 char currentSymbol;
@@ -56,9 +55,42 @@ void next_char()
     else column++;
 }
 
+Token *get_token ()
+{	
+	string leksema = "";
+    string tokenType = "";
+    int lineCur=line;
+    int columnCur=column;
+
+	 if (fin.eof()) return 0;
+	 if ((currentSymbol != ' ' ) && (currentSymbol !='\n') && (currentSymbol !='\t')){
+		 if (isalpha(currentSymbol) || currentSymbol == '_') {
+			tokenType = "ident";	
+			leksema += currentSymbol;
+			next_char();
+			while(isalpha(currentSymbol) || isdigit(currentSymbol) || currentSymbol == '_'){
+				leksema += currentSymbol;
+				next_char();	
+			}
+		 }	
+   Token *token = new Token(lineCur, columnCur, tokenType, leksema);
+        return token;
+	  
+	 }
+	else
+    {
+        next_char();
+        return get_token();
+    }
+}
 
 int main()
 {
     fin >> noskipws;
-    next_char();
+	 next_char();
+	Token *cur;
+        while (cur = get_token()) {
+            cur->print();
+            delete cur;
+        }
 }

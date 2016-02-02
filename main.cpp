@@ -50,9 +50,9 @@ char currentSymbol;
 int line = 1;
 int column = 0;
 int columnError = 0;
-char ops_second_char[] = {'/','+','*',' :','-','>', '^', '<', '@', '.', '='};
+char op_second_char[] = {'/','+','*',' :','-','>', '^', '<', '@', '.', '='};
 char sep[] = {';' ,',','(','[',')',']',};
-char ops[] = {'>','<','/','+','*',':','-','^','=','@',';',',','(','[',')',']','.'};
+char op[] = {'>','<','/','+','*',':','-','^','=','@',';',',','(','[',')',']','.'};
 
 class Token
 {
@@ -92,6 +92,13 @@ void next_char()
     else column++;
 }
 
+bool in_masiv(char s, char *mas, int len){
+	 for(int i = 0; i < len; i++){
+		if (s == mas[i]) return true;
+	 }
+	 return false;
+ }
+
 Token *get_token ()
 {	
 	string leksema = "";
@@ -99,9 +106,9 @@ Token *get_token ()
     int lineCur=line;
     int columnCur=column;
 
-	 if (fin.eof()) return 0;
-	 if ((currentSymbol != ' ' ) && (currentSymbol !='\n') && (currentSymbol !='\t')){
-		 if (isalpha(currentSymbol) || currentSymbol == '_') {
+	if (fin.eof()) return 0;
+	if ((currentSymbol != ' ' ) && (currentSymbol !='\n') && (currentSymbol !='\t')){
+		if (isalpha(currentSymbol) || currentSymbol == '_') {
 			tokenType = "ident";	
 			leksema += currentSymbol;
 			next_char();
@@ -110,18 +117,44 @@ Token *get_token ()
 				next_char();	
 			}
 		 }
-		 else if  (isdigit(currentSymbol)){
-			tokenType ="integer";
+	else if  (isdigit(currentSymbol)){
+		tokenType ="integer";
+		leksema += currentSymbol;
+		next_char();
+		while(isdigit(currentSymbol) || currentSymbol == '.'){
+			if (currentSymbol == '.') {
+				tokenType ="real"; 
+			}
 			leksema += currentSymbol;
 			next_char();
-			while(isdigit(currentSymbol) || currentSymbol == '.'){
-				if (currentSymbol == '.') {
-					tokenType ="real"; 
-				}
-					leksema += currentSymbol;
-					next_char();
-				}
-		 }
+		}
+	}
+	else if (in_masiv(currentSymbol, sep, sizeof(sep)/sizeof(sep[0]))) {
+		tokenType ="sep"; 
+		leksema += currentSymbol;
+		next_char();
+	}
+	else if (in_masiv(currentSymbol, op, sizeof(op)/sizeof(op[0]))) {
+		if (currentSymbol == ':') {
+			leksema += currentSymbol;
+			next_char();
+			if (currentSymbol == '=') {
+				leksema += currentSymbol;
+				next_char();
+				tokenType ="op"; 
+			}
+			else {tokenType ="sep"; }
+		}
+		if (in_masiv(currentSymbol, op_second_char, sizeof(op_second_char)/sizeof(op_second_char[0]))) {
+			leksema += currentSymbol;
+			next_char();
+			tokenType ="op"; 
+			if (currentSymbol == '=') {
+				leksema += currentSymbol;
+				next_char();
+			}
+		}
+	}
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);

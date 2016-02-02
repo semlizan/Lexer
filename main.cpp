@@ -109,7 +109,19 @@ Token *get_token ()
 				leksema += currentSymbol;
 				next_char();	
 			}
-		 }	
+		 }
+		 else if  (isdigit(currentSymbol)){
+			tokenType ="integer";
+			leksema += currentSymbol;
+			next_char();
+			while(isdigit(currentSymbol) || currentSymbol == '.'){
+				if (currentSymbol == '.') {
+					tokenType ="real"; 
+				}
+					leksema += currentSymbol;
+					next_char();
+				}
+		 }
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);

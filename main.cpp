@@ -99,6 +99,11 @@ bool in_masiv(char s, char *mas, int len){
 	 return false;
  }
 
+bool ishex(char c)
+{
+    return c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F';
+}
+
 Token *get_token ()
 {	
 	string leksema = "";
@@ -155,16 +160,29 @@ Token *get_token ()
 			}
 		}
 	}
-	 else if (currentSymbol == '$') {
+	else if (currentSymbol == '$') {
 			leksema+=currentSymbol;
 			next_char();
-			while(isdigit(currentSymbol) || (currentSymbol>='a' && currentSymbol<='f') || (currentSymbol>='A' && currentSymbol<='F'))
+			while(isdigit(currentSymbol) || ishex(currentSymbol))
 			{	
 				leksema+=currentSymbol;
 				next_char();
 			}
 			tokenType = "hex";	
-	 }
+	}
+	else if (currentSymbol == '#') {
+		leksema+=currentSymbol;
+		next_char();
+		if (currentSymbol == '$') {
+			leksema+=currentSymbol;
+			next_char();
+		}
+		while(ishex(currentSymbol) || isdigit(currentSymbol)){
+			leksema+=currentSymbol;
+			next_char();
+		}
+		tokenType = "char";
+	}
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);

@@ -74,7 +74,25 @@ public:
     }
     ~Token(){}
 };
-
+template<class V>
+class TokenVal: public Token
+{
+    V val;
+public:
+    TokenVal(int L, int C, string TOK, string LEKS, V val):
+            val(val),
+            Token(L, C, TOK, LEKS){}
+    void print(){
+        fout << l << "\t" << c << "\t" << tok << "\t" << leks << "\t" << val << endl;
+    }
+};
+template<>
+void TokenVal<double>::print() {
+    char buf[11];
+    sprintf(buf, "%.4E", val);
+    buf[8] = buf[9]; buf[9] = buf[10]; buf[10] = 0;
+    fout << l << "\t" << c << "\t" << tok <<"\t" << leks << "\t" << buf << endl;
+}
 void next_char()
 {
     fin >> currentSymbol;
@@ -140,7 +158,7 @@ Token *get_token ()
 		next_char();
 	}
 	else if (in_masiv(currentSymbol, op, sizeof(op)/sizeof(op[0]))) {
-		if (currentSymbol == ':') {
+		 if (currentSymbol == ':') {
 			leksema += currentSymbol;
 			next_char();
 			if (currentSymbol == '=') {
@@ -150,13 +168,31 @@ Token *get_token ()
 			}
 			else {tokenType ="sep"; }
 		}
-		if (in_masiv(currentSymbol, op_second_char, sizeof(op_second_char)/sizeof(op_second_char[0]))) {
+		 else	if (in_masiv(currentSymbol, op_second_char, sizeof(op_second_char)/sizeof(op_second_char[0]))) {
 			leksema += currentSymbol;
-			next_char();
+			if (currentSymbol == '.') {
+				next_char();
+				if (currentSymbol == '.'){
+					leksema += currentSymbol;
+					next_char();
+					tokenType ="sep";
+				}
+				else {tokenType ="op";}
+			}
+			else if (currentSymbol == '<') {
+				tokenType ="op";
+				next_char();
+				if (currentSymbol == '>' || currentSymbol == '=') {
+					leksema += currentSymbol;
+					next_char();
+			}
+		}
+			else {next_char();
 			tokenType ="op"; 
 			if (currentSymbol == '=') {
 				leksema += currentSymbol;
 				next_char();
+			}
 			}
 		}
 	}

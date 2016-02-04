@@ -122,6 +122,15 @@ bool ishex(char c)
     return c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F';
 }
 
+void ReplaceAll(string *str, string from, string to)
+{
+    unsigned int start_pos = 0;
+    while((start_pos = (*str).find(from, start_pos)) != std::string::npos) {
+        (*str).replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+}
+
 Token *get_token ()
 {	
 	string leksema = "";
@@ -219,6 +228,34 @@ Token *get_token ()
 		}
 		tokenType = "char";
 	}
+	 else if (currentSymbol == '\'')
+    {	int size = 0;
+        leksema+=currentSymbol;
+        next_char();
+        while (1)
+        {
+			 if (currentSymbol == '\'')
+            {	next_char();
+                if (currentSymbol == '\'')
+                {
+                    leksema += string(2, currentSymbol);
+                    size++;
+                    next_char();
+                }
+                else
+                {
+                    leksema += '\'';
+                    string value = leksema.substr(1, leksema.size() - 2);
+                    ReplaceAll(&value, "''", "'");
+                    if (size == 1)
+                        return new TokenVal<char>(lineCur, columnCur,"char", leksema, leksema[1]);
+                    else
+                        return new TokenVal<string>(lineCur, columnCur, "string", leksema, value);
+                }
+            }
+            else leksema += currentSymbol, size++,  next_char();
+        }
+    }
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);

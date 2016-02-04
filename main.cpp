@@ -93,6 +93,26 @@ void TokenVal<double>::print() {
     buf[8] = buf[9]; buf[9] = buf[10]; buf[10] = 0;
     fout << l << "\t" << c << "\t" << tok <<"\t" << leks << "\t" << buf << endl;
 }
+
+class Error
+{
+protected:
+    int l;
+    int c;
+    string er;
+public:
+    Error (int L, int C, string ER)
+    {
+        l = L;
+        c = C;
+        er = ER;
+    }
+    void print (){
+        fout << l << "\t" << c << "\t" << er << endl;
+    }
+    ~Error(){}
+};
+
 void next_char()
 {
     fin >> currentSymbol;

@@ -182,9 +182,32 @@ Token *get_token ()
 		}
 	}
 	else if (in_masiv(currentSymbol, sep, sizeof(sep)/sizeof(sep[0]))) {
-		tokenType ="sep"; 
+		if (currentSymbol == '(') {
+			leksema += currentSymbol;
+			next_char();
+			if (currentSymbol == '*'){
+				leksema += currentSymbol;
+				next_char();
+				while(1){
+					if (currentSymbol == '*'){
+						leksema += currentSymbol;
+						next_char();
+						if (currentSymbol == ')'){
+						leksema += currentSymbol;
+						next_char();
+						tokenType ="comment";
+						break;
+						}
+					}
+					leksema += currentSymbol;
+					next_char();
+				}
+			}
+			else { tokenType ="sep"; }
+		}
+		else {tokenType ="sep"; 
 		leksema += currentSymbol;
-		next_char();
+		next_char();}
 	}
 	else if (in_masiv(currentSymbol, op, sizeof(op)/sizeof(op[0]))) {
 		 if (currentSymbol == ':') {
@@ -207,6 +230,26 @@ Token *get_token ()
 					tokenType ="sep";
 				}
 				else {tokenType ="op";}
+			}
+			else if (currentSymbol == '/'){
+				next_char();
+				if (currentSymbol == '/'){
+					while(1){
+						if (currentSymbol == '\n' || currentSymbol == '?'  ) 
+						{break;}
+						leksema += currentSymbol;
+						next_char();
+					}
+					tokenType ="comment"; 
+				}
+				else if (currentSymbol == '='){
+					leksema += currentSymbol;
+					next_char();
+					tokenType ="op";
+				}
+				else {
+					tokenType ="op";
+				}
 			}
 			else if (currentSymbol == '<') {
 				tokenType ="op";
@@ -276,6 +319,19 @@ Token *get_token ()
             else leksema += currentSymbol, size++,  next_char();
         }
     }
+	 else if (currentSymbol == '{') {
+		while(currentSymbol != '}'){
+			 leksema +=  currentSymbol;
+             next_char();
+		}
+		leksema +=  currentSymbol;
+		tokenType = "comment";
+		next_char();
+	}
+	  if (tokenType == "comment")
+        {
+            return get_token();
+        }
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);

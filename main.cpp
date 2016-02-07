@@ -151,12 +151,22 @@ void ReplaceAll(string *str, string from, string to)
     }
 }
 
+Token *hex(string leksema, int lineCur, int columnCur, string tokenType){
+	  long int a;
+      string s;
+      s = leksema.substr(1, leksema.size());
+      a = strtol (s.c_str(), NULL, 16);
+      TokenVal<int> *tokenVal = new TokenVal<int>(lineCur, columnCur, tokenType, leksema, a);
+	  return tokenVal;	
+}
+
 Token *get_token ()
 {	
 	string leksema = "";
     string tokenType = "";
     int lineCur=line;
     int columnCur=column;
+	string eror;
 
 	if (fin.eof()) return 0;
 	if ((currentSymbol != ' ' ) && (currentSymbol !='\n') && (currentSymbol !='\t')){
@@ -271,12 +281,16 @@ Token *get_token ()
 	else if (currentSymbol == '$') {
 			leksema+=currentSymbol;
 			next_char();
-			while(isdigit(currentSymbol) || ishex(currentSymbol))
-			{	
-				leksema+=currentSymbol;
-				next_char();
-			}
-			tokenType = "hex";	
+			if  (ishex(currentSymbol) || isdigit(currentSymbol)){
+				while(isdigit(currentSymbol) || ishex(currentSymbol))
+				{	
+					leksema+=currentSymbol;
+					next_char();
+					tokenType = "hex";	
+				}
+			}		
+			else {	eror="NoHex";
+				throw new Error(lineCur, columnCur+1, eror);}
 	}
 	else if (currentSymbol == '#') {
 		leksema+=currentSymbol;
@@ -332,6 +346,10 @@ Token *get_token ()
         {
             return get_token();
         }
+	if (tokenType == "hex")
+        {
+            return hex( leksema,  lineCur,  columnCur,  tokenType);
+        }
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";
 	Token *token = new Token(lineCur, columnCur, tokenType, leksema);
@@ -340,6 +358,7 @@ Token *get_token ()
 	 }
 	else
     {
+
         next_char();
         return get_token();
     }
@@ -351,8 +370,10 @@ int main()
     fin >> noskipws;
 	 next_char();
 	Token *cur;
+       try {
         while (cur = get_token()) {
             cur->print();
             delete cur;
         }
+    }catch (Error *e) { e->print(); }
 }

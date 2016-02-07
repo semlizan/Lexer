@@ -160,6 +160,21 @@ Token *hex(string leksema, int lineCur, int columnCur, string tokenType){
 	  return tokenVal;	
 }
 
+Token *integer(string leksema, int lineCur, int columnCur, string tokenType){
+	 int a;
+     a = atoi(leksema.c_str());
+     TokenVal<int> *tokenVal = new TokenVal<int>(lineCur, columnCur, tokenType, leksema, a);
+	 return tokenVal;
+			
+}
+
+Token *real(string leksema, int lineCur, int columnCur, string tokenType){
+	   double a;
+       a = atof(leksema.c_str());
+       TokenVal<double> *tokenVal = new TokenVal<double>(lineCur, columnCur, "real", leksema, a);
+	   return tokenVal;	
+}
+
 Token *get_token ()
 {	
 	string leksema = "";
@@ -345,6 +360,14 @@ Token *get_token ()
 	  if (tokenType == "comment")
         {
             return get_token();
+        }
+	 if ( tokenType == "integer")
+        {
+            return integer(leksema, lineCur, columnCur, tokenType);
+        }
+        if (tokenType == "real")
+        {
+            return real( leksema, lineCur,  columnCur,tokenType);
         }
 	if (tokenType == "hex")
         {

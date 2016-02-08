@@ -325,10 +325,13 @@ Token *get_token ()
         leksema+=currentSymbol;
         next_char();
         while (1)
-        {
-			 if (currentSymbol == '\'')
+        {	if (currentSymbol == '\n'){ eror="BadNL";
+				throw new Error(lineCur, columnCur+1, eror);}
+			if (currentSymbol =='?') {eror="BadEOF";
+				throw new Error(lineCur, column, eror);}
+			else if (currentSymbol == '\'')
             {	next_char();
-                if (currentSymbol == '\'')
+                 if (currentSymbol == '\'')
                 {
                     leksema += string(2, currentSymbol);
                     size++;
@@ -348,7 +351,7 @@ Token *get_token ()
             else leksema += currentSymbol, size++,  next_char();
         }
     }
-	 else if (currentSymbol == '{') {
+	else if (currentSymbol == '{') {
 		while(currentSymbol != '}'){
 			 leksema +=  currentSymbol;
              next_char();
@@ -357,6 +360,8 @@ Token *get_token ()
 		tokenType = "comment";
 		next_char();
 	}
+	 else if (!fin.eof()) {eror="BadChar";
+	 throw new Error(lineCur, columnCur+1, eror);}
 	  if (tokenType == "comment")
         {
             return get_token();

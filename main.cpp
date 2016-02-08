@@ -175,6 +175,34 @@ Token *real(string leksema, int lineCur, int columnCur, string tokenType){
 	   return tokenVal;	
 }
 
+Token *har(string leksema, int lineCur, int columnCur, string tokenType){
+	  char d;
+      d = leksema[1];
+      TokenVal<char> *tokenVal = new TokenVal<char>(lineCur, columnCur, tokenType, leksema, d);
+	  return tokenVal;	
+}
+
+Token *charreh(string leksema, int lineCur, int columnCur, string tokenType){
+	  string s;
+      int a;
+      char d;
+      tokenType = "char";
+      if (leksema[1] == '$')
+	  {
+		 s = leksema.substr(2, leksema.size());
+         a = strtol (s.c_str(), NULL, 16);
+      } else 
+	  {
+         s = leksema.substr(1, leksema.size());
+         a = atoi(s.c_str());
+      }
+       cout << a << endl;
+       if (a > 127) throw new Error(lineCur,column,"BadCC");
+       d = (char)a;
+       TokenVal<char> *tokenVal = new TokenVal<char>(lineCur, columnCur, tokenType, leksema, d);
+	   return tokenVal;	
+}
+Token* buffer;
 Token *get_token ()
 {	
 	string leksema = "";
@@ -182,7 +210,11 @@ Token *get_token ()
     int lineCur=line;
     int columnCur=column;
 	string eror;
-
+	if (buffer != NULL) {
+		Token *t = buffer;
+			buffer=NULL;
+			return t;
+	}
 	if (fin.eof()) return 0;
 	if ((currentSymbol != ' ' ) && (currentSymbol !='\n') && (currentSymbol !='\t')){
 		if (isalpha(currentSymbol) || currentSymbol == '_') {
@@ -198,12 +230,53 @@ Token *get_token ()
 		tokenType ="integer";
 		leksema += currentSymbol;
 		next_char();
+		if (currentSymbol == 'e' || currentSymbol == 'E' ) {
+			leksema += currentSymbol;
+			next_char();
+			tokenType ="real"; 
+			if  (isdigit(currentSymbol)) {
+				leksema += currentSymbol;
+				next_char();
+			}
+			else {eror="NoFract";	
+			throw new Error(line, column, eror);}
+		}
 		while(isdigit(currentSymbol) || currentSymbol == '.'){
 			if (currentSymbol == '.') {
+				leksema += currentSymbol;
+				next_char();
+				if (currentSymbol == 'e' || currentSymbol == 'E') { 
+					eror="NoFract";	
+				 	throw new Error(line, column, eror);
+					}
+				else if (currentSymbol == '?') {
+							eror="NoFract";	
+					throw new Error(line, column, eror);
+					}
+				else if (currentSymbol == '.') {
+					 buffer = new Token (line, column - 1, "sep", "..");
+					leksema = leksema.substr(0,leksema.size()-1);
+					 next_char();
+					 return integer(leksema, lineCur, columnCur, "integer");
+				}
 				tokenType ="real"; 
 			}
 			leksema += currentSymbol;
 			next_char();
+			if (currentSymbol == 'e' || currentSymbol == 'E') {
+					leksema += currentSymbol;
+					next_char(); 
+				if ( currentSymbol == '.') {eror="NoExp";	
+				throw new Error(line, column, eror);}
+				if (currentSymbol == '+' || currentSymbol == '-') {
+					leksema += currentSymbol;
+					next_char(); 
+				if ((currentSymbol>'9') || currentSymbol == '%') {eror="NoExp";	
+				throw new Error(line, column, eror);}
+				}				else if ((currentSymbol<'1' && currentSymbol>'9') || currentSymbol == '?') {eror="NoExp";	
+
+				throw new Error(line, column, eror);}
+			}
 		}
 	}
 	else if (in_masiv(currentSymbol, sep, sizeof(sep)/sizeof(sep[0]))) {
@@ -310,15 +383,26 @@ Token *get_token ()
 	else if (currentSymbol == '#') {
 		leksema+=currentSymbol;
 		next_char();
-		if (currentSymbol == '$') {
-			leksema+=currentSymbol;
-			next_char();
-		}
-		while(ishex(currentSymbol) || isdigit(currentSymbol)){
-			leksema+=currentSymbol;
-			next_char();
-		}
 		tokenType = "char";
+		if (currentSymbol == '$') {
+			tokenType = "char#";
+			leksema+=currentSymbol;
+			next_char();
+			while(ishex(currentSymbol) || isdigit(currentSymbol)){
+			leksema+=currentSymbol;
+			next_char();
+			}
+		}
+		else if  (isdigit(currentSymbol))  {
+			while(isdigit(currentSymbol)){
+			leksema+=currentSymbol;
+			next_char();
+			tokenType = "char";
+			}
+		}
+		 else { eror="NoHex";
+				throw new Error(lineCur, column, eror);}
+	
 	}
 	 else if (currentSymbol == '\'')
     {	int size = 0;
@@ -361,7 +445,7 @@ Token *get_token ()
 		next_char();
 	}
 	 else if (!fin.eof()) {eror="BadChar";
-	 throw new Error(lineCur, columnCur+1, eror);}
+	 throw new Error(lineCur, columnCur, eror);}
 	  if (tokenType == "comment")
         {
             return get_token();
@@ -377,6 +461,14 @@ Token *get_token ()
 	if (tokenType == "hex")
         {
             return hex( leksema,  lineCur,  columnCur,  tokenType);
+        }
+	 if (tokenType == "char")
+        {
+            return har(leksema, lineCur,columnCur,tokenType);
+        }
+        if (tokenType == "char#")
+        {
+			return charreh(leksema,  lineCur, columnCur,  tokenType);  
         }
 	if (tokenType == "ident" && (ident_type[leksema] == KEYWORDS)) tokenType = "keyword";
     if (tokenType == "ident" && (ident_type[leksema] == OP)) tokenType = "op";

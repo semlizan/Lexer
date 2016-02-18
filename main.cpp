@@ -176,8 +176,15 @@ Token *real(string leksema, int lineCur, int columnCur, string tokenType){
 }
 
 Token *har(string leksema, int lineCur, int columnCur, string tokenType){
+	  string s;
+	  int a;
 	  char d;
-      d = leksema[1];
+	  s = leksema.substr(1); 
+	  a = atoi(s.c_str());
+	  if ( a>127) {
+			throw new Error(line, column, "BadCC");
+				}
+	  d = (char)a; 
       TokenVal<char> *tokenVal = new TokenVal<char>(lineCur, columnCur, tokenType, leksema, d);
 	  return tokenVal;	
 }
@@ -227,6 +234,7 @@ Token *get_token ()
 			}
 		 }
 	else if  (isdigit(currentSymbol)){
+		int k=0;
 		tokenType ="integer";
 		leksema += currentSymbol;
 		next_char();
@@ -243,6 +251,7 @@ Token *get_token ()
 		}
 		while(isdigit(currentSymbol) || currentSymbol == '.'){
 			if (currentSymbol == '.') {
+				k++;
 				leksema += currentSymbol;
 				next_char();
 				if (currentSymbol == 'e' || currentSymbol == 'E') { 
@@ -259,10 +268,13 @@ Token *get_token ()
 					 next_char();
 					 return integer(leksema, lineCur, columnCur, "integer");
 				}
+
 				tokenType ="real"; 
 			}
 			leksema += currentSymbol;
 			next_char();
+			if (currentSymbol == '.' && k == 2){ return real(leksema, lineCur, columnCur, "real");}
+			if (currentSymbol == '.') {k++;}
 			if (currentSymbol == 'e' || currentSymbol == 'E') {
 					leksema += currentSymbol;
 					next_char(); 
@@ -407,7 +419,11 @@ Token *get_token ()
 			tokenType = "char";
 			}
 		}
-		 else { eror="NoHex";
+		 else if  (leksema[0] == '#' && isalpha(currentSymbol))
+				{
+					throw new Error(line,column, "NoCC");
+				} 
+		else { eror="NoHex";
 				throw new Error(lineCur, column, eror);}
 	
 	}
@@ -415,9 +431,14 @@ Token *get_token ()
     {	int size = 0;
         leksema+=currentSymbol;
         next_char();
+		if (currentSymbol == '\n'){
+				 eror="BadNL";
+				throw new Error(lineCur, columnCur+1 , eror);
+				}
+		int p=0;
         while (1)
         {	if (currentSymbol == '\n'){ eror="BadNL";
-				throw new Error(lineCur, columnCur+1, eror);}
+				throw new Error(lineCur, p+1, eror);}
 			if (currentSymbol =='?') {eror="BadEOF";
 				throw new Error(lineCur, column, eror);}
 			else if (currentSymbol == '\'')
@@ -439,7 +460,7 @@ Token *get_token ()
                         return new TokenVal<string>(lineCur, columnCur, "string", leksema, value);
                 }
             }
-            else leksema += currentSymbol, size++,  next_char();
+            else leksema += currentSymbol, size++, p=column, next_char();
         }
     }
 	else if (currentSymbol == '{') {

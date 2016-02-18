@@ -290,15 +290,22 @@ Token *get_token ()
 					if (currentSymbol == '*'){
 						leksema += currentSymbol;
 						next_char();
+						if (currentSymbol == '*'){
+							leksema += currentSymbol;
+							next_char();}
+						if (currentSymbol == '?') { eror="BadEOF";	
+						throw new Error(lineCur, column, eror);    }
 						if (currentSymbol == ')'){
-						leksema += currentSymbol;
-						next_char();
-						tokenType ="comment";
-						break;
+							leksema += currentSymbol;
+							next_char();
+							tokenType ="comment";
+							break;
 						}
 					}
 					leksema += currentSymbol;
 					next_char();
+					if (currentSymbol == '?') { eror="BadEOF";	
+						throw new Error(lineCur, column, eror);    }
 				}
 			}
 			else { tokenType ="sep"; }
@@ -439,6 +446,8 @@ Token *get_token ()
 		while(currentSymbol != '}'){
 			 leksema +=  currentSymbol;
              next_char();
+			  if (currentSymbol == '?') { eror="BadEOF";	
+						throw new Error(line, column, eror);    }
 		}
 		leksema +=  currentSymbol;
 		tokenType = "comment";
